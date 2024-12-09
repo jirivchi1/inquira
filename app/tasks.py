@@ -9,6 +9,9 @@ from openai import OpenAI
 
 @celery.task()
 def generate_image_task(prompt, username):
+    # Limpiar espacios en blanco del username
+    username = username.strip()
+
     # Obtener configuración desde current_app
     mongodb_uri = current_app.config["MONGODB_URI"]
     openai_api_key = current_app.config["OPENAI_API_KEY"]
