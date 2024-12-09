@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from pymongo import MongoClient
+from .tasks import generate_image_task
 from dotenv import load_dotenv
 import os
 
@@ -11,8 +12,11 @@ mongo_client = MongoClient(os.getenv("MONGODB_URI"))
 db = mongo_client["image_generation"]
 questions_collection = db["questions"]
 
-# Definir el blueprint para las rutas
 routes = Blueprint("routes", __name__)
+
+
+def collection_exists(db, collection_name):
+    return collection_name in db.list_collection_names()
 
 
 @routes.route("/")
@@ -23,7 +27,10 @@ def home():
 
 @routes.route("/competition")
 def competition():
-    images = list(questions_collection.find({"category": "competition"}))
+    # Mostrar solo las imágenes completadas
+    images = list(
+        questions_collection.find({"category": "competition", "status": "completed"})
+    )
     return render_template("competition.html", images=images)
 
 
@@ -39,16 +46,28 @@ def submit():
         user_name = request.form.get("user_name")
         prompt = request.form.get("prompt")
 
-        # Insertar en la base de datos con la misma estructura usada anteriormente
+        # Verificar si la colección existe (opcional)
+        if not collection_exists(db, "questions"):
+            # Crear índices u otras configuraciones iniciales si es necesario
+            questions_collection.create_index("user_name")
+
+        # Insertar en la base de datos con estado "pending"
         question = {
             "user_name": user_name,
-            "image_path": "images/original/first.jpg",
+            "image_path": "images/original/first.jpg",  # Ruta de la imagen original
             "prompt": prompt,
             "category": "competition",
+            "status": "pending",
         }
         questions_collection.insert_one(question)
 
-        # Redirigir a /competition para ver el nuevo dato
+        # Iniciar la tarea de Celery para generar la imagen
+        generate_image_task.delay(prompt, user_name)
+
+        # Flash message para notificar al usuario
+        flash("Tu solicitud ha sido enviada y la imagen se generará pronto.")
+
+        # Redirigir a /competition para ver el nuevo dato (pendiente no se muestra)
         return redirect(url_for("routes.competition"))
 
     # Si es GET, mostramos el formulario

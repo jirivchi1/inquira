@@ -27,3 +27,33 @@ your_project/
 │               └── 4.jpg
 ├── run.py
 └── requirements.txt
+
+------------add celery--
+your_project/
+├── README.md
+├── app/
+│   ├── __init__.py
+│   ├── celery_app.py
+│   ├── routes.py
+│   ├── tasks.py
+│   ├── static/
+│   │   ├── css/
+│   │   │   └── styles.css
+│   │   ├── images/
+│   │   │   ├── competition/
+│   │   │   ├── gallery/
+│   │   │   ├── inicio/
+│   │   │   └── original/
+│   │   │       └── first.jpg
+│   │   └── js/
+│   │       └── scripts.js
+│   └── templates/
+│       ├── base.html
+│       ├── competition.html
+│       ├── gallery.html
+│       ├── index.html
+│       └── submit.html
+├── requirements.txt
+├── roadmap/
+│   └── codebase.txt
+└── run.py
