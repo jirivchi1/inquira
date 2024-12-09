@@ -16,6 +16,10 @@ def create_app():
         OPENAI_API_KEY=os.getenv("OPENAI_API_KEY"),
     )
 
+    # Establecer la secret_key para manejar sesiones y mensajes flash
+    app.secret_key = os.getenv("SECRET_KEY", "default_secret_key")
+
+
     # Importar y registrar Blueprints
     from .routes import routes
 
