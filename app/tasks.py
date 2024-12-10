@@ -25,11 +25,24 @@ def generate_image_task(prompt, username):
     # Configurar el cliente de OpenAI
     client = OpenAI(api_key=openai_api_key)
 
-    # Llamada a la API para generar la imagen
+    # Crear el prompt final mezclando el texto base y el prompt del usuario
+    system_prompt = f"eres un sistema experto que genera imagen de manera realista con la siguiente descripción: {prompt}"
+
+    # Ruta a la imagen original que da contexto
+    original_image_path = os.path.join(
+        current_app.root_path, "static", "images", "original", "first.jpg"
+    )
+
+    # Llamada a la API para editar la imagen con contexto
     try:
-        response = client.images.generate(
-            prompt=prompt, n=1, size="1024x1024", response_format="url"
-        )
+        with open(original_image_path, "rb") as image_file:
+            response = client.images.edit(
+                image=image_file,
+                prompt=system_prompt,
+                n=1,
+                size="1024x1024",
+                response_format="url",
+            )
     except Exception as e:
         # Manejar errores de la API
         questions_collection.update_one(
